@@ -75,7 +75,7 @@ public class SUIObject: ObservableObject {
     }
     /// Run an Async Function with or without a value
     @discardableResult
-    public func aync(function named: AnyHashable, value: Any = SUIObject()) -> LaterValue<SUIObject> {
+    public func async(function named: AnyHashable, value: Any = SUIObject()) -> LaterValue<SUIObject> {
         Later.promise { [weak self] promise in
             do {
                 promise.succeed(SUIObject(try self?.function(named)(value)))
