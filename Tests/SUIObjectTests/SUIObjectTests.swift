@@ -5,12 +5,12 @@ final class SUIObjectTests: XCTestCase {
     func testExample() {
         let object = SUIObject("Hello, World!")
         
-        XCTAssertEqual(object.string(), "Hello, World!")
+        XCTAssertEqual(object.stringValue(), "Hello, World!")
         
         object.add(value: "...")
         
-        XCTAssertNotEqual(object.string(), "Hello, World!")
-        XCTAssertEqual(object.string(), "...")
+        XCTAssertNotEqual(object.stringValue(), "Hello, World!")
+        XCTAssertEqual(object.stringValue(), "...")
     }
 
     static var allTests = [

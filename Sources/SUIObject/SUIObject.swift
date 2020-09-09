@@ -244,7 +244,7 @@ public extension SUIObject {
         variables["_value"] ?? SUIObject()
     }
     
-    func string() -> String? {
+    func stringValue() -> String? {
         value(as: String.self)
     }
     
