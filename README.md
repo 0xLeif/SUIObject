@@ -6,7 +6,7 @@ import SwiftUI
 import SUIObject
 
 struct ContentView: View {
-    @ObservedObject var object = SUIObject("...")
+    @ObservedObject var object = Object("...")
     
     var body: some View {
         VStack {
