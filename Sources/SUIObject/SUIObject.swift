@@ -2,48 +2,49 @@ import Foundation
 import SwiftUI
 import Later
 
-public enum SUIObjectError: Error {
+public enum ObjectError: Error {
     case invalidParameter
 }
+
 @dynamicMemberLookup
-public class SUIObject: ObservableObject {
-    public typealias SUIObjectFunction = (Any?) throws -> Any?
+public class Object: ObservableObject {
+    public typealias ObjectFunction = (Any?) throws -> Any?
     /// Functions of the object
-    @Published public var functions: [AnyHashable: SUIObjectFunction] = [:]
+    @Published public var functions: [AnyHashable: ObjectFunction] = [:]
     /// Variables of the object
     @Published public var variables: [AnyHashable: Any] = [:]
     /// @dynamicMemberLookup
-    public subscript(dynamicMember member: String) -> SUIObject {
+    public subscript(dynamicMember member: String) -> Object {
         guard let value = variables[member] else {
-            return SUIObject()
+            return Object()
         }
         if let array = value as? [Any] {
-            return SUIObject(array: array)
+            return Object(array: array)
         }
-        guard let object = value as? SUIObject else {
-            return SUIObject(value)
+        guard let object = value as? Object else {
+            return Object(value)
         }
         return object
     }
     /// Retrieve a Function from the current object
     @discardableResult
-    public func function(_ named: AnyHashable) -> SUIObjectFunction {
+    public func function(_ named: AnyHashable) -> ObjectFunction {
         guard let function = functions[named] else {
-            return { _ in SUIObject() }
+            return { _ in Object() }
         }
         return function
     }
     /// Retrieve a Value from the current object
     @discardableResult
-    public func variable(_ named: AnyHashable) -> SUIObject {
+    public func variable(_ named: AnyHashable) -> Object {
         guard let value = variables[named] else {
-            return SUIObject()
+            return Object()
         }
         if let array = value as? [Any] {
-            return SUIObject(array: array)
+            return Object(array: array)
         }
-        guard let object = value as? SUIObject else {
-            return SUIObject(unwrap(value))
+        guard let object = value as? Object else {
+            return Object(unwrap(value))
         }
         return object
     }
@@ -52,7 +53,7 @@ public class SUIObject: ObservableObject {
         variables[named] = value
     }
     /// Add a ChildObject with a name of `_object` to the current object
-    public func add(childObject object: SUIObject) {
+    public func add(childObject object: Object) {
         variables["_object"] = object
     }
     /// Add an Array with a name of `_array` to the current object
@@ -60,25 +61,25 @@ public class SUIObject: ObservableObject {
         variables["_array"] = array
     }
     /// Add a Function with a name and a closure to the current object
-    public func add(function named: AnyHashable, value: @escaping SUIObjectFunction) {
+    public func add(function named: AnyHashable, value: @escaping ObjectFunction) {
         functions[named] = value
     }
     /// Run a Function with or without a value
     @discardableResult
-    public func run(function named: AnyHashable, value: Any = SUIObject()) -> SUIObject {
-        SUIObject(try? function(named)(value))
+    public func run(function named: AnyHashable, value: Any = Object()) -> Object {
+        Object(try? function(named)(value))
     }
     ///Run a Function with a internal value
     @discardableResult
-    public func run(function named: AnyHashable, withInteralValueName iValueName: AnyHashable) -> SUIObject {
-        SUIObject(try? function(named)(variable(iValueName)))
+    public func run(function named: AnyHashable, withInteralValueName iValueName: AnyHashable) -> Object {
+        Object(try? function(named)(variable(iValueName)))
     }
     /// Run an Async Function with or without a value
     @discardableResult
-    public func async(function named: AnyHashable, value: Any = SUIObject()) -> LaterValue<SUIObject> {
+    public func async(function named: AnyHashable, value: Any = Object()) -> LaterValue<Object> {
         Later.promise { [weak self] promise in
             do {
-                promise.succeed(SUIObject(try self?.function(named)(value)))
+                promise.succeed(Object(try self?.function(named)(value)))
             } catch {
                 promise.fail(error)
             }
@@ -86,12 +87,12 @@ public class SUIObject: ObservableObject {
     }
     ///Run an Async Function with a internal value
     @discardableResult
-    public func async(function named: AnyHashable, withInteralValueName iValueName: AnyHashable) -> LaterValue<SUIObject> {
+    public func async(function named: AnyHashable, withInteralValueName iValueName: AnyHashable) -> LaterValue<Object> {
         let value = variable(iValueName)
         
         return Later.promise { [weak self] promise in
             do {
-                promise.succeed(SUIObject(try self?.function(named)(value)))
+                promise.succeed(Object(try self?.function(named)(value)))
             } catch {
                 promise.fail(error)
             }
@@ -111,7 +112,7 @@ public class SUIObject: ObservableObject {
     // MARK: public init
     
     public init() { }
-    public init(_ value: Any? = nil, _ closure: ((SUIObject) -> Void)? = nil) {
+    public init(_ value: Any? = nil, _ closure: ((Object) -> Void)? = nil) {
         defer {
             if let closure = closure {
                 configure(closure)
@@ -125,16 +126,16 @@ public class SUIObject: ObservableObject {
         if let _ = unwrappedValue as? NSNull {
             return
         }
-        if let object = unwrappedValue as? SUIObject {
+        if let object = unwrappedValue as? Object {
             consume(object)
         } else if let array = unwrappedValue as? [Any] {
-            consume(SUIObject(array: array))
+            consume(Object(array: array))
         } else if let dictionary = unwrappedValue as? [AnyHashable: Any] {
-            consume(SUIObject(dictionary: dictionary))
+            consume(Object(dictionary: dictionary))
         } else if let data = unwrappedValue as? Data {
-            consume(SUIObject(data: data))
+            consume(Object(data: data))
         } else {
-            consume(SUIObject {
+            consume(Object {
                 $0.add(value: unwrappedValue)
             })
         }
@@ -144,7 +145,7 @@ public class SUIObject: ObservableObject {
     
     private init(array: [Any]) {
         add(variable: "_array", value: array.map {
-            SUIObject($0)
+            Object($0)
         })
     }
     private init(dictionary: [AnyHashable: Any]) {
@@ -163,21 +164,22 @@ public class SUIObject: ObservableObject {
                                                            options: .allowFragments) as? [AnyHashable: Any] else {
                                                             return
         }
-        consume(SUIObject(json))
+        consume(Object(json))
         add(value: data)
     }
 }
-public extension SUIObject {
+
+public extension Object {
     
     @discardableResult
-    func configure(_ closure: (SUIObject) -> Void) -> SUIObject {
+    func configure(_ closure: (Object) -> Void) -> Object {
         closure(self)
         
         return self
     }
     
     @discardableResult
-    func consume(_ object: SUIObject) -> SUIObject {
+    func consume(_ object: Object) -> Object {
         object.variables.forEach { (key, value) in
             self.add(variable: key, value: value)
         }
@@ -188,60 +190,79 @@ public extension SUIObject {
         return self
     }
 }
-extension SUIObject: CustomStringConvertible {
+
+extension Object: CustomStringConvertible {
     public var description: String {
-        variables
-            .map { (key, value) in
-                guard let object = value as? SUIObject else {
-                    return "\t\(key): \(value)"
-                }
-                
-                return object.description
+        var varDescription: String? = "|\tVariables\n"
+        var funcDescription: String? = "|\tFunctions\n"
+        
+        if variables.isEmpty {
+            varDescription = nil
+        } else {
+            varDescription? += variables
+                .map { (key, value) in
+                    guard let object = value as? Object else {
+                        return "|\t* \(key): \(value) (\(type(of: value)))"
+                    }
+                    
+                    return "|\t \(key): Object {\n\(object.description.split(separator: "\n").map { "|\t \($0)" }.dropFirst().joined(separator: "\n"))"
+            }
+            .joined(separator: "\n")
         }
-        .joined(separator: "\n")
+        
+        if functions.isEmpty {
+            funcDescription = nil
+        } else {
+            funcDescription? += functions
+            .map { (key, value) in "|\t* \(key): \(String(describing: value))" }
+            .joined(separator: "\n")
+        }
+        
+        return ["Object {", varDescription, funcDescription, "}"].compactMap { $0 }.joined(separator: "\n")
     }
 }
-public extension SUIObject {
-    var all: [AnyHashable: SUIObject] {
-        var allVariables = [AnyHashable: SUIObject]()
+
+public extension Object {
+    var all: [AnyHashable: Object] {
+        var allVariables = [AnyHashable: Object]()
         
         variables.forEach { key, value in
             print("Key: \(key) = \(value)")
             let uKey = ((key as? String) == "") ? UUID().uuidString : key
-            if let objects = value as? [SUIObject] {
-                allVariables[uKey] = SUIObject(array: objects)
+            if let objects = value as? [Object] {
+                allVariables[uKey] = Object(array: objects)
                 return
             }
-            guard let object = value as? SUIObject else {
-                allVariables[uKey] = SUIObject(value)
+            guard let object = value as? Object else {
+                allVariables[uKey] = Object(value)
                 return
             }
-            allVariables[uKey] = SUIObject(dictionary: object.all)
+            allVariables[uKey] = Object(dictionary: object.all)
         }
         
         return allVariables
     }
     
-    var array: [SUIObject] {
+    var array: [Object] {
         if let array = variables["_array"] as? [Data] {
-            return array.map { SUIObject(data: $0) }
+            return array.map { Object(data: $0) }
         } else if let array = variables["_array"] as? [Any] {
             return array.map { value in
                 guard let json = value as? [AnyHashable: Any] else {
-                    return SUIObject(value)
+                    return Object(value)
                 }
-                return SUIObject(dictionary: json)
+                return Object(dictionary: json)
             }
         }
         return []
     }
     
-    var object: SUIObject {
-        (variables["_object"] as? SUIObject) ?? SUIObject()
+    var object: Object {
+        (variables["_object"] as? Object) ?? Object()
     }
     
     var value: Any {
-        variables["_value"] ?? SUIObject()
+        variables["_value"] ?? Object()
     }
     
     func stringValue() -> String? {
@@ -260,16 +281,18 @@ public extension SUIObject {
         return try? JSONDecoder().decode(T.self, from: data)
     }
 }
+
 public extension Data {
-    var object: SUIObject {
-        SUIObject(self)
+    var object: Object {
+        Object(self)
     }
 }
+
 public extension Encodable {
-    var object: SUIObject {
+    var object: Object {
         guard let data =  try? JSONEncoder().encode(self) else {
-            return SUIObject(self)
+            return Object(self)
         }
-        return SUIObject(data)
+        return Object(data)
     }
 }
