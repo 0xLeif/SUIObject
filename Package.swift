@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "Object",
+    name: "SUIObject",
     platforms: [
         .iOS(.v13),
         .macOS(.v10_15),
@@ -14,7 +14,7 @@ let package = Package(
     products: [
         // Products define the executables and libraries produced by a package, and make them visible to other packages.
         .library(
-            name: "Object",
+            name: "SUIObject",
             targets: ["SUIObject"]),
     ],
     dependencies: [
