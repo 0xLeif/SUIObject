@@ -3,7 +3,7 @@ import XCTest
 
 final class SUIObjectTests: XCTestCase {
     func testExample() {
-        let object = SUIObject("Hello, World!")
+        let object = Object("Hello, World!")
         
         XCTAssertEqual(object.stringValue(), "Hello, World!")
         

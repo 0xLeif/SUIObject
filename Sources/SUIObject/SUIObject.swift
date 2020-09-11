@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
-import Later
+import Combino
+import Combine
 
 public enum ObjectError: Error {
     case invalidParameter
@@ -76,25 +77,25 @@ public class Object: ObservableObject {
     }
     /// Run an Async Function with or without a value
     @discardableResult
-    public func async(function named: AnyHashable, value: Any = Object()) -> LaterValue<Object> {
-        Later.promise { [weak self] promise in
+    public func async(function named: AnyHashable, value: Any = Object()) -> Future<Object, Error> {
+        Combino.promise { [weak self] promise in
             do {
-                promise.succeed(Object(try self?.function(named)(value)))
+                promise(.success(Object(try self?.function(named)(value))))
             } catch {
-                promise.fail(error)
+                promise(.failure(error))
             }
         }
     }
     ///Run an Async Function with a internal value
     @discardableResult
-    public func async(function named: AnyHashable, withInteralValueName iValueName: AnyHashable) -> LaterValue<Object> {
+    public func async(function named: AnyHashable, withInteralValueName iValueName: AnyHashable) -> Future<Object, Error> {
         let value = variable(iValueName)
         
-        return Later.promise { [weak self] promise in
+        return Combino.promise { [weak self] promise in
             do {
-                promise.succeed(Object(try self?.function(named)(value)))
+                promise(.success(Object(try self?.function(named)(value))))
             } catch {
-                promise.fail(error)
+                promise(.failure(error))
             }
         }
     }
