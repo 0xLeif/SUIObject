@@ -1,5 +1,5 @@
 //
-//  ObjectView.swift
+//  ObservedObjectView.swift
 //  SUIObject
 //
 //  Created by Zach Eriksen on 11/7/20.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-public struct ObjectView<Content>: View where Content: View {
+public struct ObservedObjectView<Content>: View where Content: View {
     @ObservedObject private var object: Object
     
     public var content: (Object) -> Content
@@ -26,8 +26,8 @@ public struct ObjectView<Content>: View where Content: View {
 }
 
 public extension Object {
-    func view<Content>(content: @escaping (Object) -> Content) -> ObjectView<Content> where Content: View {
-        ObjectView(object: self, content: content)
+    func observedView<Content>(content: @escaping (Object) -> Content) -> ObservedObjectView<Content> where Content: View {
+        ObservedObjectView(object: self, content: content)
     }
 }
 
@@ -37,13 +37,13 @@ struct ObjectView_Previews: PreviewProvider {
     }
     
     static private var previewObjectView: some View {
-        previewObject.view { obj in
+        previewObject.observedView { obj in
             Text(obj.stringValue() ?? "-1")
         }
     }
     
     static var previews: some View {
-        ObjectView(object: previewObject) { obj in
+        ObservedObjectView(object: previewObject) { obj in
             Text(obj.stringValue() ?? "-1")
         }
     }
